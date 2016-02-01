@@ -6,6 +6,11 @@ local Tabs = nil
 local CurrentTab = 0
 local Check
 GBM:RegisterChatCommand("gbm", "OnSlashCommand")
+GBM:RegisterChatCommand("tic", "OnTic")
+GBM:RegisterChatCommand("tac", "OnTac")
+local StartTime = 0
+local StartGold = 0
+
 
 local CURRENT_LEVEL = 60
 local MIN_LEVEL = CURRENT_LEVEL - 20
@@ -191,4 +196,54 @@ function GBM:RateItem(record)
     end
     
     return prefix ~= "", prefix.." "..text
+end
+
+
+function GBM:FormatTime(seconds)
+    local minutes = floor(seconds / 60) % 60
+    local hours = floor(minutes / 60)
+    seconds = seconds % 60
+    
+    t = ""
+    if hours > 0 then
+        if hours < 10 then
+            t = t.."0"
+        end
+        t = t..hours.."h:"
+    end
+    if hours > 0 or minutes > 0 then
+        if minutes < 10 then
+            t = t.."0"
+        end
+        t = t..minutes.."m:"
+    end
+    return t..(floor(seconds * 100 + 0.5)/100).."s"
+end
+
+
+function GBM:FormatMoney(copper)
+    local str = GetCoinText(abs(copper))
+    local pre = ""
+    local suf = ""
+    if copper < 0 then
+        pre = "|cffcc0000- "
+        suf = "|r"
+    else
+        pre = "+ "
+    end
+    return pre..str..suf
+end
+
+function GBM:OnTic()
+    GBM:Print("Tic")
+    StartTime = GetTime()
+    StartGold = GetMoney()
+end
+
+
+function GBM:OnTac()
+    GBM:Print("Tac", GBM:FormatTime(GetTime() - StartTime))
+    local copper = GetMoney() - StartGold
+    GBM:Print(GBM:FormatMoney(copper))
+    DepositGuildBankMoney(copper)
 end
